@@ -7,15 +7,14 @@ const entryPoint = 'https://jungle3.cryptolions.io:443';
 const contract = 'horsemangosc';
 
 (async function main() {
-  const horserace = new EOSContract(contract, actor, privateKey, entryPoint);
-  await horserace.init();
+  const horserace = await EOSContract.from(contract).by(actor, privateKey).at(entryPoint).init();
 
-  console.log(JSON.stringify(await horserace.allActions()));
-  console.log(JSON.stringify(await horserace.allTables()));
+  // console.log(JSON.stringify(await horserace.allActions()));
+  // console.log(JSON.stringify(await horserace.allTables()));
 
   let r = await horserace.cleanrace();
 
-  console.log(JSON.stringify(r, null, 2));
+  console.log(JSON.stringify(r.transaction_id, null, 2));
 })();
 
 

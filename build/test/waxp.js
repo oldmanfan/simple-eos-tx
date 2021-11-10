@@ -19,8 +19,7 @@ const entryPoint = 'https://wax.cryptolions.io';
 const contract = 'farmersworld';
 (function main() {
     return __awaiter(this, void 0, void 0, function* () {
-        const fw = new src_1.default(contract, actor, privateKey, entryPoint);
-        yield fw.init();
+        const fw = yield src_1.default.from(contract).by(actor, privateKey).at(entryPoint).init();
         // await fw.repair('horse', 100);
         let t = yield fw.tables.config();
         let a = yield fw.tables.accounts("..sg2.wam", "..sg2.wam");

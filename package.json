@@ -1,5 +1,5 @@
 {
-  "name": "simple-eos-tx",
+  "name": "simple-eos-contract",
   "version": "1.0.0",
   "description": "This is a simple wrapper for eosjs on eos based chain.",
   "main": "build/index.js",

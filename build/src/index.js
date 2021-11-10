@@ -16,14 +16,14 @@ const eosjs_1 = require("eosjs");
 const eosjs_jssig_1 = require("eosjs/dist/eosjs-jssig");
 const cross_fetch_1 = __importDefault(require("cross-fetch"));
 class EOSContract {
-    constructor(contr, actor, pk, url) {
+    constructor(contr) {
+        this.actor_ = null;
+        this.pk_ = null;
+        this.rpc_ = null;
+        this.api_ = null;
         this.actions_ = [];
         this.tables_ = [];
         this.contract_ = contr;
-        this.actor_ = actor;
-        const signatureProvider = new eosjs_jssig_1.JsSignatureProvider([pk]);
-        const rpc = new eosjs_1.JsonRpc(url, { fetch: cross_fetch_1.default });
-        this.api_ = new eosjs_1.Api({ rpc, signatureProvider, textDecoder: new TextDecoder(), textEncoder: new TextEncoder() });
     }
     get api() {
         return this.api_;
@@ -68,7 +68,6 @@ class EOSContract {
                 blocksBehind: 3,
                 expireSeconds: 30,
             });
-            // console.log(JSON.stringify(result, null, 2));
             return result;
         });
     }
@@ -91,6 +90,9 @@ class EOSContract {
     }
     init() {
         return __awaiter(this, void 0, void 0, function* () {
+            const signatureProvider = new eosjs_jssig_1.JsSignatureProvider([this.pk_]);
+            const rpc = new eosjs_1.JsonRpc(this.rpc_, { fetch: cross_fetch_1.default });
+            this.api_ = new eosjs_1.Api({ rpc, signatureProvider, textDecoder: new TextDecoder(), textEncoder: new TextEncoder() });
             const abi = yield this.api.getAbi(this.contract_);
             for (const a of abi.actions) {
                 const s = this.getStruct(abi, a.type);
@@ -103,7 +105,21 @@ class EOSContract {
                 });
                 this.tables_.push(t.name);
             }
+            return this;
         });
+    }
+    static from(contr) {
+        let c = new EOSContract(contr);
+        return c;
+    }
+    by(actor, pk) {
+        this.actor_ = actor;
+        this.pk_ = pk;
+        return this;
+    }
+    at(rpc) {
+        this.rpc_ = rpc;
+        return this;
     }
     allActions() {
         return this.actions_;

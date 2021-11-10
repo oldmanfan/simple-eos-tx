@@ -29,18 +29,16 @@ export default class EOSContract {
   [fn: string]: any;
 
   private contract_: string;
-  private actor_: string;
-  private api_: Api;
+  private actor_: string | null = null;
+  private pk_: string | null = null;
+  private rpc_: string | null = null;
+  private api_: Api | null = null;
 
   private actions_: string[] = [];
   private tables_: string[] = [];
 
-  constructor(contr: string, actor: string, pk: string, url: string) {
+  private constructor(contr: string) {
     this.contract_ = contr;
-    this.actor_ = actor;
-    const signatureProvider = new JsSignatureProvider([pk]);
-    const rpc = new JsonRpc(url, { fetch });
-    this.api_ = new Api({ rpc, signatureProvider, textDecoder: new TextDecoder(), textEncoder: new TextEncoder() });
   }
 
   get api() {
@@ -77,12 +75,12 @@ export default class EOSContract {
         }
       }
 
-      const result = await this.api.transact({
+      const result = await this.api!.transact({
         actions: [{
           account: this.contract_,
           name: actionName,
           authorization: [{
-            actor: this.actor_,
+            actor: this.actor_!,
             permission: 'active',
           }],
           data,
@@ -111,11 +109,15 @@ export default class EOSContract {
       show_payer: false,
     };
 
-    return await this.api.rpc.get_table_rows(filter);
+    return await this.api!.rpc.get_table_rows(filter);
   }
 
-  async init() {
-    const abi = await this.api.getAbi(this.contract_);
+  async init(): Promise<EOSContract> {
+    const signatureProvider = new JsSignatureProvider([this.pk_!]);
+    const rpc = new JsonRpc(this.rpc_!, { fetch });
+    this.api_ = new Api({ rpc, signatureProvider, textDecoder: new TextDecoder(), textEncoder: new TextEncoder() });
+
+    const abi = await this.api!.getAbi(this.contract_);
 
     for (const a of abi.actions) {
       const s = this.getStruct(abi, a.type);
@@ -129,6 +131,25 @@ export default class EOSContract {
       }
       this.tables_.push(t.name);
     }
+
+    return this;
+  }
+
+  static from(contr: string): EOSContract {
+    let c = new EOSContract(contr);
+    return c;
+  }
+
+  by(actor: string, pk: string): EOSContract {
+    this.actor_ = actor;
+    this.pk_ = pk;
+
+    return this;
+  }
+
+  at(rpc: string): EOSContract {
+    this.rpc_ = rpc;
+    return this;
   }
 
   allActions() {

@@ -19,12 +19,11 @@ const entryPoint = 'https://jungle3.cryptolions.io:443';
 const contract = 'horsemangosc';
 (function main() {
     return __awaiter(this, void 0, void 0, function* () {
-        const horserace = new src_1.default(contract, actor, privateKey, entryPoint);
-        yield horserace.init();
-        console.log(JSON.stringify(yield horserace.allActions()));
-        console.log(JSON.stringify(yield horserace.allTables()));
+        const horserace = yield src_1.default.from(contract).by(actor, privateKey).at(entryPoint).init();
+        // console.log(JSON.stringify(await horserace.allActions()));
+        // console.log(JSON.stringify(await horserace.allTables()));
         let r = yield horserace.cleanrace();
-        console.log(JSON.stringify(r, null, 2));
+        console.log(JSON.stringify(r.transaction_id, null, 2));
     });
 })();
 //# sourceMappingURL=jungle.js.map

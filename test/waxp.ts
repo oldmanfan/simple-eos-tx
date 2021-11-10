@@ -7,8 +7,7 @@ const entryPoint = 'https://wax.cryptolions.io';
 const contract = 'farmersworld';
 
 (async function main() {
-  const fw = new EOSContract(contract, actor, privateKey, entryPoint);
-  await fw.init();
+  const fw = await EOSContract.from(contract).by(actor, privateKey).at(entryPoint).init();
 
   // await fw.repair('horse', 100);
   let t = await fw.tables.config();
