@@ -2,6 +2,7 @@ import { Api, JsonRpc} from 'eosjs';
 import { JsSignatureProvider } from 'eosjs/dist/eosjs-jssig';
 import fetch from 'cross-fetch';
 import { Abi } from 'eosjs/dist/eosjs-rpc-interfaces';
+import { SignatureProvider } from 'eosjs/dist/eosjs-api-interfaces';
 
 interface Struct {
   name: string;
@@ -33,6 +34,7 @@ export default class EOSContract {
   private pk_: string | null = null;
   private rpc_: string | null = null;
   private api_: Api | null = null;
+  private signatureProvider_: SignatureProvider | null = null;
 
   private actions_: string[] = [];
   private tables_: string[] = [];
@@ -113,9 +115,8 @@ export default class EOSContract {
   }
 
   async init(): Promise<EOSContract> {
-    const signatureProvider = new JsSignatureProvider([this.pk_!]);
     const rpc = new JsonRpc(this.rpc_!, { fetch });
-    this.api_ = new Api({ rpc, signatureProvider, textDecoder: new TextDecoder(), textEncoder: new TextEncoder() });
+    this.api_ = new Api({ rpc, signatureProvider: this.signatureProvider_!, textDecoder: new TextDecoder(), textEncoder: new TextEncoder() });
 
     const abi = await this.api!.getAbi(this.contract_);
 
@@ -140,15 +141,20 @@ export default class EOSContract {
     return c;
   }
 
-  by(actor: string, pk: string): EOSContract {
+  by(actor: string, pk: string | null = null): EOSContract {
     this.actor_ = actor;
     this.pk_ = pk;
 
     return this;
   }
 
-  at(rpc: string): EOSContract {
+  at(rpc: string, signatureProvider: SignatureProvider | null = null): EOSContract {
     this.rpc_ = rpc;
+    if (signatureProvider) {
+      this.signatureProvider_ = signatureProvider;
+    } else {
+      this.signatureProvider_ = new JsSignatureProvider([this.pk_!]);
+    }
     return this;
   }
 

@@ -21,6 +21,7 @@ class EOSContract {
         this.pk_ = null;
         this.rpc_ = null;
         this.api_ = null;
+        this.signatureProvider_ = null;
         this.actions_ = [];
         this.tables_ = [];
         this.contract_ = contr;
@@ -90,9 +91,8 @@ class EOSContract {
     }
     init() {
         return __awaiter(this, void 0, void 0, function* () {
-            const signatureProvider = new eosjs_jssig_1.JsSignatureProvider([this.pk_]);
             const rpc = new eosjs_1.JsonRpc(this.rpc_, { fetch: cross_fetch_1.default });
-            this.api_ = new eosjs_1.Api({ rpc, signatureProvider, textDecoder: new TextDecoder(), textEncoder: new TextEncoder() });
+            this.api_ = new eosjs_1.Api({ rpc, signatureProvider: this.signatureProvider_, textDecoder: new TextDecoder(), textEncoder: new TextEncoder() });
             const abi = yield this.api.getAbi(this.contract_);
             for (const a of abi.actions) {
                 const s = this.getStruct(abi, a.type);
@@ -112,13 +112,19 @@ class EOSContract {
         let c = new EOSContract(contr);
         return c;
     }
-    by(actor, pk) {
+    by(actor, pk = null) {
         this.actor_ = actor;
         this.pk_ = pk;
         return this;
     }
-    at(rpc) {
+    at(rpc, signatureProvider = null) {
         this.rpc_ = rpc;
+        if (signatureProvider) {
+            this.signatureProvider_ = signatureProvider;
+        }
+        else {
+            this.signatureProvider_ = new eosjs_jssig_1.JsSignatureProvider([this.pk_]);
+        }
         return this;
     }
     allActions() {
